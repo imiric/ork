@@ -20,5 +20,7 @@ setup(
     ],
     packages=['ork'],
     install_requires=[
-    ]
+        'click==6.3'
+    ],
+    entry_points={'console_scripts': ['ork = ork.cli:cli']},
 )
