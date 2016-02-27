@@ -1,5 +1,7 @@
 import click
 
+from .config import load_config
+
 
 @click.group(context_settings={'auto_envvar_prefix': 'ORK'})
 def cli():
@@ -7,5 +9,7 @@ def cli():
 
 
 @cli.command(help='Start the ork server.')
-def start():
-    pass
+@click.option('--config', help='Configuration file path')
+def start(config):
+    config = load_config(config)
+    print(config)
