@@ -21,7 +21,8 @@ setup(
     packages=['ork'],
     install_requires=[
         'click==6.3',
-        'PyYAML==3.11'
+        'PyYAML==3.11',
+        'redis==2.10.5'
     ],
     entry_points={'console_scripts': ['ork = ork.cli:cli']},
 )

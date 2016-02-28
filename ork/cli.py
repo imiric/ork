@@ -1,6 +1,7 @@
 import click
 
 from .config import load_config
+from .task import load_tasks
 
 
 @click.group(context_settings={'auto_envvar_prefix': 'ORK'})
@@ -12,4 +13,4 @@ def cli():
 @click.option('--config', help='Configuration file path')
 def start(config):
     config = load_config(config)
-    print(config)
+    load_tasks(config['tasks'])
