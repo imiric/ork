@@ -1,0 +1,7 @@
+broker:
+  redis:
+    host: localhost
+    port: 6379
+
+tasks:
+  - examples.pizza
