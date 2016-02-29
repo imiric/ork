@@ -1,4 +1,4 @@
-from ork import task
+from ork.task import task
 
 
 @task()
