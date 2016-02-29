@@ -54,6 +54,7 @@ def eat(food):
     print('Eating {}'.format(food))
 
 
-dough = prepare_dough(flour(), water(), yeast())
-cooked_pizza = cook_pizza(dough, tomato_sauce(), cheese(), pepperoni())
-eat(cooked_pizza)
+dough = prepare_dough.delay(flour.delay(), water.delay(), yeast.delay())
+cooked_pizza = cook_pizza.delay(dough, tomato_sauce.delay(), cheese.delay(),
+                                pepperoni.delay())
+eat.delay(cooked_pizza)

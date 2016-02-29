@@ -12,8 +12,7 @@ _TASK_NAME_PREFIX = 'ork'
 
 def task(name=''):
     def _outer_wrapper(wrapped_task):
-        @functools.wraps(wrapped_task)
-        def _wrapper(*args, **kwargs):
+        def delay(*args, **kwargs):
             task_name = '{}:{}'.format(
                 _TASK_NAME_PREFIX,
                 name or '{}.{}'.format(
@@ -24,6 +23,12 @@ def task(name=''):
                      *args, **kwargs)
             t.start()
             return t
+
+        wrapped_task.delay = delay
+
+        @functools.wraps(wrapped_task)
+        def _wrapper(*args, **kwargs):
+            return wrapped_task(*args, **kwargs)
         return _wrapper
     return _outer_wrapper
 
