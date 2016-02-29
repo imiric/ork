@@ -2,8 +2,8 @@ import importlib
 import functools
 import multiprocessing as mp
 
-import redis
 
+from .brokers import get_broker
 from .config import load_config
 
 
@@ -19,7 +19,9 @@ def task(name=''):
                 name or '{}.{}'.format(
                     wrapped_task.__module__,
                     wrapped_task.__name__))
-            t = Task(task_name, wrapped_task, *args, **kwargs)
+            config = load_config()
+            t = Task(task_name, get_broker(config), wrapped_task,
+                     *args, **kwargs)
             t.start()
             return t
         return _wrapper
@@ -27,9 +29,9 @@ def task(name=''):
 
 
 class Task:
-    def __init__(self, name, task=None, *args, **kwargs):
+    def __init__(self, name, broker, task=None, *args, **kwargs):
         self.name = name
-        self._config = load_config()['broker']['redis']
+        self._broker = broker
         self._task = task
         self._process = mp.Process(target=self._work, args=args, kwargs=kwargs)
 
@@ -42,20 +44,11 @@ class Task:
         This is a blocking method.
 
         """
-        r = self._redis_conn()
-        res = r.brpop(self.name)
-        return res[1].decode()
+        return self._broker.get(self.name)
 
     def start(self):
         """Start a worker subprocess for this task"""
         self._process.start()
-
-    def _redis_conn(self):
-        if getattr(self, '_conn', None):
-            return self._conn
-        self._conn = redis.StrictRedis(host=self._config['host'],
-                                       port=self._config['port'])
-        return self._conn
 
     def _work(self, *args, **kwargs):
         """Process the task's inputs and store its result in a queue
@@ -63,18 +56,15 @@ class Task:
         This is a blocking method.
 
         """
-        r = self._redis_conn()
-
         inputs = list(args[:])
         for i, inp in enumerate(inputs):
             if isinstance(inp, Task):
-                # XXX: Consider using BRPOPLPUSH for improved reliability.
                 inputs[i] = inp.get()
 
         result = self._task(*inputs)
 
         if result:
-            r.rpush(self.name, result)
+            self._broker.set(self.name, result)
 
 
 def load_tasks(config):
